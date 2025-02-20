@@ -1,13 +1,15 @@
 local http = game:GetService("HttpService")
 
--- 🔑 別サーバーからキーを取得（GitHub Gist など）
+-- 🔑 キーを取得
 local keyUrl = "https://privatebin.net/?2f0d5f288a858b23#CFjo6NkH8pmC7oY44rRxQ4A7ua7QrWN8q93JEYHZT9JP"
 local key = game:HttpGet(keyUrl, true):gsub("%s+$", "")
+print("🔑 Key Data:", key) -- ✅ キーデバッグ
 
--- 📜 Pastebin から暗号化されたスクリプトを取得
+-- 📜 Pastebin から暗号化スクリプトを取得
 local encryptedScript = game:HttpGet("https://pastebin.com/raw/K8ktWTs6", true)
+print("🔹 Encrypted Script:", encryptedScript) -- ✅ 暗号化スクリプトデバッグ
 
--- 🔓 XOR で復号
+-- 🔓 XOR 復号関数
 local function xor_decrypt(data, key)
     local result, keyLength = {}, #key
     for i = 1, #data do
@@ -17,4 +19,9 @@ local function xor_decrypt(data, key)
 end
 
 -- 🚀 復号＆実行
-loadstring(xor_decrypt(encryptedScript, key))()
+local finalScript = xor_decrypt(encryptedScript, key)
+print("🔓 Decrypted Script:", finalScript) -- ✅ 復号スクリプトデバッグ
+
+-- エラー対策
+assert(finalScript and #finalScript > 0, "❌ Decryption failed: Script is empty!")
+loadstring(finalScript)()
