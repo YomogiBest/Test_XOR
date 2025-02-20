@@ -1,13 +1,29 @@
 local http = game:GetService("HttpService")
 
--- 🔑 キーを取得
-local keyUrl = "https://privatebin.net/?2f0d5f288a858b23#CFjo6NkH8pmC7oY44rRxQ4A7ua7QrWN8q93JEYHZT9JP"
+-- 🔑 別サーバーからキーを取得
+local keyUrl = "https://privatebin.net/?2f0d5f288a858b23#CFjo6NkH8pmC7oY44rRxQ4A7ua7QrWN8q93JEYHZT9JP?raw"
 local key = game:HttpGet(keyUrl, true):gsub("%s+$", "")
-print("🔑 Key Data:", key) -- ✅ キーデバッグ
+print("🔑 Key:", key)
 
--- 📜 Pastebin から暗号化スクリプトを取得
-local encryptedScript = game:HttpGet("https://pastebin.com/raw/K8ktWTs6", true)
-print("🔹 Encrypted Script:", encryptedScript) -- ✅ 暗号化スクリプトデバッグ
+-- 📜 GitHub Gist から暗号化スクリプトを取得
+local encryptedScript = game:HttpGet("https://gist.githubusercontent.com/YomogiBest/346a6505dcd1d8836de79bd127b82898/raw/07ccb4976b85fc9159061d80c81b76aad69a7d/gist", true)
+print("🔹 Encrypted Script Length:", #encryptedScript)
+
+-- 🔄 Base64 デコード
+local decodedScript
+local success, err = pcall(function()
+    if syn and syn.crypt and syn.crypt.base64.decode then
+        decodedScript = syn.crypt.base64.decode(encryptedScript)
+    elseif crypt and crypt.base64decode then
+        decodedScript = crypt.base64decode(encryptedScript)
+    else
+        error("❌ Base64 デコードがサポートされていません！")
+    end
+end)
+
+if not success then
+    error("❌ Base64 Decoding Error: " .. err)
+end
 
 -- 🔓 XOR 復号関数
 local function xor_decrypt(data, key)
@@ -19,9 +35,8 @@ local function xor_decrypt(data, key)
 end
 
 -- 🚀 復号＆実行
-local finalScript = xor_decrypt(encryptedScript, key)
-print("🔓 Decrypted Script:", finalScript) -- ✅ 復号スクリプトデバッグ
+local finalScript = xor_decrypt(decodedScript, key)
+print("🔓 Decrypted Script Length:", #finalScript)
 
--- エラー対策
 assert(finalScript and #finalScript > 0, "❌ Decryption failed: Script is empty!")
 loadstring(finalScript)()
